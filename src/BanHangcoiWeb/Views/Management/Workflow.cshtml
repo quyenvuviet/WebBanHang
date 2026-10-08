@@ -1,0 +1,94 @@
+@model WorkflowDashboardViewModel
+@{
+    ViewData["Title"] = "Workflow";
+    ViewData["PageTitle"] = "Plan vận hành theo tài khoản";
+}
+
+<div class="workflow-grid">
+@foreach (var row in Model.RoleTasks)
+{
+    <section class="panel role-card">
+        <div class="panel-heading">
+            <h3>@row.RoleName</h3>
+            <span class="pill">@row.SuccessMetric</span>
+        </div>
+        <p class="role-mission">@row.Mission</p>
+        <small>Màn hình chính: @row.MainScreen</small>
+        <ul class="task-list">
+            @foreach (var task in row.Tasks)
+            {
+                <li>@task</li>
+            }
+        </ul>
+    </section>
+}
+</div>
+
+<div class="two-column">
+    <section class="panel">
+        <div class="panel-heading">
+            <h3>Thông báo quản lý</h3>
+            <a asp-action="MyTasks">Xem việc của tôi</a>
+        </div>
+        <div class="notification-list">
+            @foreach (var item in Model.Notifications)
+            {
+                <div class="notice-item">
+                    <strong>@item.Title</strong>
+                    <span>@item.Message</span>
+                    <small>@item.CreatedAt.ToString("dd/MM HH:mm") · @VietnameseLabels.ViRole(item.TargetRole) · @item.Status.Vi()</small>
+                </div>
+            }
+        </div>
+    </section>
+
+    <section class="panel">
+        <div class="panel-heading">
+            <h3>AI local gợi ý doanh thu</h3>
+            <a asp-action="AiAdvisor">Mở AI local</a>
+        </div>
+        <div class="insight-list">
+            @foreach (var item in Model.AiInsights)
+            {
+                <div class="insight-card @VietnameseLabels.PriorityClass(item.Priority)">
+                    <span>@VietnameseLabels.ViPriority(item.Priority) · @VietnameseLabels.ViOwnerRole(item.OwnerRole)</span>
+                    <strong>@item.Title</strong>
+                    <p>@item.Finding</p>
+                    <small>@item.Action</small>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h3>Nhật ký thao tác gần đây</h3>
+        <span class="hint">Dùng để nghiệm thu từng vai trò và kiểm tra trách nhiệm dữ liệu</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Thời gian</th>
+                    <th>Người làm</th>
+                    <th>Vai trò</th>
+                    <th>Tác vụ</th>
+                    <th>Dữ liệu</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var log in Model.AuditLogs)
+            {
+                <tr>
+                    <td>@log.CreatedAt.ToString("dd/MM HH:mm")</td>
+                    <td>@log.Actor?.DisplayName</td>
+                    <td>@VietnameseLabels.ViRole(log.ActorRole)</td>
+                    <td>@log.Action</td>
+                    <td>@log.EntityType<br /><small>@log.NewValue</small></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>

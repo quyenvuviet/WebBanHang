@@ -1,0 +1,60 @@
+@model IReadOnlyList<SalesOrder>
+@{
+    ViewData["Title"] = "Đơn hàng";
+    ViewData["PageTitle"] = "Quản lý đơn hàng";
+}
+
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Đơn từ chốt sale đến done</h3>
+        <div class="filter-group">
+            <a asp-action="Orders">Tất cả</a>
+            <a asp-action="Orders" asp-route-status="WaitingPack">Chờ đóng</a>
+            <a asp-action="Orders" asp-route-status="Shipping">Đang giao</a>
+            <a asp-action="Orders" asp-route-status="Returned">Hoàn</a>
+            <a asp-action="Orders" asp-route-status="Done">Done</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Ngày chốt</th>
+                    <th>Khách</th>
+                    <th>Sản phẩm</th>
+                    <th>COD</th>
+                    <th>Phí ship</th>
+                    <th>Sale</th>
+                    <th>Địa chỉ</th>
+                    <th>Trạng thái</th>
+                    <th>Tác vụ</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var order in Model)
+            {
+                <tr>
+                    <td>@order.OrderDate</td>
+                    <td><strong>@order.CustomerNameRaw</strong><br /><small>@order.PhoneNormalized</small></td>
+                    <td>@string.Join(", ", order.Items.Select(x => x.ProductNameRaw))</td>
+                    <td>@((order.CodAmountVnd ?? 0).ToString("N0"))</td>
+                    <td>@((order.ShippingFeeVnd ?? 0).ToString("N0"))</td>
+                    <td>@order.SaleUser?.DisplayName</td>
+                    <td>@(order.ShippingAddress ?? order.AddressRaw)<br /><small>@order.PackingNote</small></td>
+                    <td><span class="pill">@order.OrderStatus.Vi()</span></td>
+                    <td>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Warehouse"))
+                        {
+                            <form asp-action="PackOrder" method="post" class="inline-form">
+                                <input type="hidden" name="id" value="@order.Id" />
+                                <input type="hidden" name="packingNote" value="Đã kiểm và đóng hàng" />
+                                <button class="btn btn-sm btn-teal" type="submit">Đóng hàng</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

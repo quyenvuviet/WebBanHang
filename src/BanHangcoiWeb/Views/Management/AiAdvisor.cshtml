@@ -1,0 +1,25 @@
+@model IReadOnlyList<AiInsight>
+@{
+    ViewData["Title"] = "AI local";
+    ViewData["PageTitle"] = "AI local phân tích tăng doanh thu";
+}
+
+<section class="hero-panel compact-hero">
+    <div>
+        <span class="eyebrow">Local rule-based AI</span>
+        <h2>Gợi ý hành động để Sale bán tốt hơn</h2>
+        <p>Phân tích dữ liệu SQL local: lead, cuộc gọi, đơn, vận đơn, ticket CSKH. Không gọi API ngoài.</p>
+    </div>
+</section>
+
+<div class="insight-list insight-grid">
+@foreach (var item in Model)
+{
+    <article class="insight-card @VietnameseLabels.PriorityClass(item.Priority)">
+        <span>@VietnameseLabels.ViPriority(item.Priority) · @VietnameseLabels.ViOwnerRole(item.OwnerRole)</span>
+        <strong>@item.Title</strong>
+        <p>@item.Finding</p>
+        <small>@item.Action</small>
+    </article>
+}
+</div>

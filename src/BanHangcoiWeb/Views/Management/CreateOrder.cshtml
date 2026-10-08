@@ -1,0 +1,42 @@
+@model SalesOrderFormViewModel
+@{
+    ViewData["Title"] = "Tạo đơn";
+    ViewData["PageTitle"] = "Sale tạo đơn sau khi chốt";
+}
+
+<form asp-action="CreateOrder" method="post" class="panel entry-form">
+    <input type="hidden" asp-for="LeadId" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <section class="form-section">
+        <h4>Thông tin khách và sản phẩm</h4>
+        <div class="form-grid">
+            <label>Khách hàng <input asp-for="CustomerName" class="form-control" /></label>
+            <label>SĐT <input asp-for="Phone" class="form-control" /></label>
+            <label>Sản phẩm chốt <input asp-for="ProductName" class="form-control" /></label>
+            <label>Số lượng <input asp-for="Quantity" class="form-control" type="number" min="1" /></label>
+            <label>Giá trị đơn <input asp-for="TotalAmountVnd" class="form-control" type="number" min="0" /></label>
+            <label>Phí ship <input asp-for="ShippingFeeVnd" class="form-control" type="number" min="0" /></label>
+        </div>
+    </section>
+
+    <section class="form-section">
+        <h4>Thông tin cho kho và vận chuyển</h4>
+        <div class="form-grid">
+            <label>Người nhận <input asp-for="ReceiverName" class="form-control" /></label>
+            <label>SĐT nhận hàng <input asp-for="ReceiverPhone" class="form-control" /></label>
+            <label>Địa chỉ giao <input asp-for="ShippingAddress" class="form-control" /></label>
+        </div>
+        <label class="wide-label">Ghi chú đóng hàng <textarea asp-for="PackingNote" class="form-control" rows="3"></textarea></label>
+        <label class="wide-label">Ghi chú đơn <textarea asp-for="Note" class="form-control" rows="3"></textarea></label>
+    </section>
+
+    <div class="form-actions">
+        <button class="btn btn-teal" type="submit">Tạo đơn và báo kho</button>
+        <a class="btn btn-outline-secondary" asp-action="Leads">Quay lại lead</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

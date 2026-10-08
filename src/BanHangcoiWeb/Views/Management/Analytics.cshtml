@@ -1,0 +1,112 @@
+@model AnalyticsViewModel
+@{
+    ViewData["Title"] = "Biểu đồ";
+    ViewData["PageTitle"] = "Biểu đồ ngày, tuần, tháng và quý";
+}
+
+<section class="chart-grid">
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Bảng cột theo ngày</h3>
+            <span class="hint">Số đơn</span>
+        </div>
+        <div class="bar-chart">
+            @foreach (var point in Model.DailyOrders.TakeLast(31))
+            {
+                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxBarValue));
+                <div class="bar-column" title="@point.Label: @point.Value">
+                    <div class="bar-value">@point.Value</div>
+                    <div class="bar" style="height:@height%; background:@point.Color"></div>
+                    <span>@point.Label</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Bảng cột theo tuần</h3>
+            <span class="hint">Số đơn</span>
+        </div>
+        <div class="bar-chart">
+            @foreach (var point in Model.WeeklyOrders)
+            {
+                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxBarValue));
+                <div class="bar-column" title="@point.Label: @point.Value">
+                    <div class="bar-value">@point.Value</div>
+                    <div class="bar" style="height:@height%; background:@point.Color"></div>
+                    <span>@point.Label</span>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="chart-grid">
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Bảng cột theo tháng</h3>
+            <span class="hint">Doanh số VND</span>
+        </div>
+        <div class="bar-chart">
+            @foreach (var point in Model.MonthlyOrders)
+            {
+                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxBarValue));
+                <div class="bar-column" title="@point.Label: @point.Value.ToString("N0")">
+                    <div class="bar-value">@point.Value.ToString("N0")</div>
+                    <div class="bar" style="height:@height%; background:@point.Color"></div>
+                    <span>@point.Label</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Bảng cột theo quý</h3>
+            <span class="hint">Doanh số VND</span>
+        </div>
+        <div class="bar-chart">
+            @foreach (var point in Model.QuarterlyOrders)
+            {
+                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxBarValue));
+                <div class="bar-column" title="@point.Label: @point.Value.ToString("N0")">
+                    <div class="bar-value">@point.Value.ToString("N0")</div>
+                    <div class="bar" style="height:@height%; background:@point.Color"></div>
+                    <span>@point.Label</span>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h3>Bảng tròn theo trạng thái đơn</h3>
+        <span class="hint">Tỷ trọng số đơn theo trạng thái</span>
+    </div>
+    <div class="pie-layout">
+        @{
+            var total = Math.Max(1, Model.StatusPie.Sum(x => x.Value));
+            var current = 0.0;
+            var stops = new List<string>();
+            foreach (var point in Model.StatusPie)
+            {
+                var start = current;
+                current += point.Value * 100.0 / total;
+                stops.Add($"{point.Color} {start:0.##}% {current:0.##}%");
+            }
+        }
+        <div class="pie" style="background: conic-gradient(@string.Join(", ", stops));"></div>
+        <div class="legend">
+            @foreach (var point in Model.StatusPie)
+            {
+                <div class="legend-row">
+                    <span style="background:@point.Color"></span>
+                    <strong>@point.Label</strong>
+                    <em>@point.Value đơn (@((point.Value * 100.0 / total).ToString("0.0"))%)</em>
+                </div>
+            }
+        </div>
+    </div>
+</section>

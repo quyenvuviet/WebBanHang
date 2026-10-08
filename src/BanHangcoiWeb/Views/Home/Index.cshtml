@@ -1,0 +1,120 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Tổng quan";
+    ViewData["PageTitle"] = "Tổng quan vận hành";
+}
+
+<section class="hero-panel">
+    <div>
+        <p class="eyebrow">Marketing -> gọi -> chốt -> đóng hàng -> vận chuyển -> hỗ trợ -> done</p>
+        <h2>Quản lý bán phụ tùng ô tô theo action live</h2>
+        <p>Theo dõi lead, đơn hàng, tồn kho, vận đơn và hỗ trợ nhận hàng trên một giao diện xanh ngọc, dữ liệu lưu SQL Server.</p>
+    </div>
+    <a class="btn btn-light" asp-controller="Management" asp-action="Leads">Xem lead hôm nay</a>
+</section>
+
+<section class="metric-grid">
+    <div class="metric-card">
+        <span>Lead</span>
+        <strong>@Model.LeadCount</strong>
+        <small>@Model.HighIntentLeadCount lead nhu cầu cao</small>
+    </div>
+    <div class="metric-card">
+        <span>Đơn hàng</span>
+        <strong>@Model.OrderCount</strong>
+        <small>@Model.DeliveredOrderCount đơn đã nhận/done</small>
+    </div>
+    <div class="metric-card">
+        <span>Doanh số chốt</span>
+        <strong>@Model.ClosedRevenueVnd.ToString("N0")</strong>
+        <small>VND theo đơn đang active</small>
+    </div>
+    <div class="metric-card">
+        <span>Ticket mở</span>
+        <strong>@Model.OpenTicketCount</strong>
+        <small>Cần hỗ trợ nhận hàng</small>
+    </div>
+</section>
+
+<section class="two-column">
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Lead mới và cần chăm</h3>
+            <a asp-controller="Management" asp-action="Leads">Tất cả</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Khách</th>
+                        <th>Sản phẩm</th>
+                        <th>Sale</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var lead in Model.RecentLeads)
+                {
+                    <tr>
+                        <td>@lead.LeadDate</td>
+                        <td>@lead.CustomerNameRaw<br /><small>@lead.PhoneNormalized</small></td>
+                        <td>@(lead.Product?.ProductName ?? lead.ProductInterestRaw)</td>
+                        <td>@lead.AssignedUser?.DisplayName</td>
+                        <td><span class="pill">@lead.LeadStatus.Vi()</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Đơn hàng gần đây</h3>
+            <a asp-controller="Management" asp-action="Orders">Tất cả</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Khách</th>
+                        <th>COD</th>
+                        <th>Sale</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var order in Model.RecentOrders)
+                {
+                    <tr>
+                        <td>@order.OrderDate</td>
+                        <td>@order.CustomerNameRaw<br /><small>@order.PhoneNormalized</small></td>
+                        <td>@((order.CodAmountVnd ?? 0).ToString("N0"))</td>
+                        <td>@order.SaleUser?.DisplayName</td>
+                        <td><span class="pill">@order.OrderStatus.Vi()</span></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h3>Tồn kho cần chú ý</h3>
+        <a asp-controller="Management" asp-action="Products">Quản lý kho</a>
+    </div>
+    <div class="inventory-row">
+        @foreach (var item in Model.Inventory)
+        {
+            <div class="stock-tile">
+                <span>@item.Sku</span>
+                <strong>@item.CurrentQty</strong>
+                <small>@item.ProductName</small>
+            </div>
+        }
+    </div>
+</section>

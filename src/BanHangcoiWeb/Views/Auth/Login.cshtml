@@ -1,0 +1,48 @@
+@model LoginViewModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng nhập - BanHangcoi CRM</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="login-body">
+    <main class="login-card">
+        <div class="brand login-brand">
+            <span class="brand-mark">B</span>
+            <span>
+                <strong>BanHangcoi CRM</strong>
+                <small>Đăng nhập theo vai trò</small>
+            </span>
+        </div>
+        <form method="post">
+            @Html.AntiForgeryToken()
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger">@Model.ErrorMessage</div>
+            }
+            <label asp-for="LoginName" class="form-label">Tài khoản</label>
+            <input asp-for="LoginName" class="form-control" autocomplete="username" />
+            <span asp-validation-for="LoginName" class="text-danger"></span>
+
+            <label asp-for="Password" class="form-label mt-3">Mật khẩu</label>
+            <input asp-for="Password" type="password" class="form-control" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+
+            <button type="submit" class="btn btn-teal w-100 mt-4">Đăng nhập</button>
+        </form>
+
+        <div class="login-help">
+            <strong>Tài khoản mẫu:</strong>
+            <span>admin / Admin@123</span>
+            <span>marketing / Marketing@123</span>
+            <span>sale.hong / Sale@123</span>
+        </div>
+    </main>
+</body>
+</html>

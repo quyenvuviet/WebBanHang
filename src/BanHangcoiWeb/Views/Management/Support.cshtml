@@ -1,0 +1,63 @@
+@model IReadOnlyList<SupportTicket>
+@{
+    ViewData["Title"] = "Hỗ trợ";
+    ViewData["PageTitle"] = "Hỗ trợ nhận hàng và xử lý vấn đề";
+}
+
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Ticket hỗ trợ</h3>
+        <span class="hint">Đơn không được done khi còn ticket mở</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Mở lúc</th>
+                    <th>Khách</th>
+                    <th>Loại vấn đề</th>
+                    <th>Nội dung</th>
+                    <th>Phụ trách</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var ticket in Model)
+            {
+                <tr>
+                    <td>@ticket.OpenedAt.ToString("dd/MM HH:mm")</td>
+                    <td>@ticket.Customer?.CustomerName<br /><small>@ticket.Customer?.PhoneNormalized</small></td>
+                    <td><strong>@ticket.IssueType</strong></td>
+                    <td>@ticket.IssueNote</td>
+                    <td>@ticket.AssignedUser?.DisplayName</td>
+                    <td><span class="pill">@ticket.Status.Vi()</span></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Support"))
+{
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>CSKH cập nhật sau giao</h3>
+            <span class="hint">Khi xử lý xong, chọn Resolved hoặc Closed để chuyển đơn sang Done</span>
+        </div>
+        <form asp-action="UpdateSupport" method="post" class="entry-form">
+            <div class="form-grid">
+                <label>OrderId <input name="OrderId" class="form-control" /></label>
+                <label>Loại vấn đề <input name="IssueType" class="form-control" value="Hỗ trợ nhận hàng" /></label>
+                <label>Trạng thái
+                    <select name="Status" class="form-select" asp-items="VietnameseLabels.TicketStatusItems(TicketStatus.Open)"></select>
+                </label>
+            </div>
+            <label class="wide-label">Nội dung vấn đề <textarea name="IssueNote" class="form-control" rows="2"></textarea></label>
+            <label class="wide-label">Cách xử lý <textarea name="ResolutionNote" class="form-control" rows="2"></textarea></label>
+            <div class="form-actions">
+                <button class="btn btn-teal" type="submit">Lưu CSKH</button>
+            </div>
+        </form>
+    </div>
+}

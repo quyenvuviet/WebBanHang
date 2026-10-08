@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BanHangcoi CRM</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/BanHangcoiWeb.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <span class="brand-mark">B</span>
+                <span>
+                    <strong>BanHangcoi</strong>
+                    <small>CRM phụ tùng ô tô</small>
+                </span>
+            </a>
+            <nav class="side-nav">
+                <a asp-controller="Home" asp-action="Index">Tổng quan</a>
+                <a asp-controller="Management" asp-action="MyTasks">Việc của tôi</a>
+                <a asp-controller="Management" asp-action="Leads">Lead & cuộc gọi</a>
+                @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Marketing"))
+                {
+                    <a asp-controller="Management" asp-action="CreateLead">Nhập lead</a>
+                }
+                <a asp-controller="Management" asp-action="Orders">Đơn hàng</a>
+                <a asp-controller="Management" asp-action="Products">Sản phẩm & kho</a>
+                <a asp-controller="Management" asp-action="Shipments">Vận đơn</a>
+                <a asp-controller="Management" asp-action="Support">Hỗ trợ nhận hàng</a>
+                <a asp-controller="Management" asp-action="Analytics">Biểu đồ</a>
+                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                {
+                    <a asp-controller="Management" asp-action="Workflow">Workflow</a>
+                    <a asp-controller="Management" asp-action="AiAdvisor">AI local</a>
+                }
+                <a asp-controller="Management" asp-action="Imports">Import Excel</a>
+                @if (User.IsInRole("Admin") || User.IsInRole("Manager"))
+                {
+                    <a asp-controller="Management" asp-action="Accounts">Tài khoản</a>
+                }
+            </nav>
+        </aside>
+
+        <div class="main-area">
+            <header class="topbar">
+                <div>
+                    <span class="eyebrow">Action live</span>
+                    <h1>@(ViewData["PageTitle"] ?? ViewData["Title"] ?? "Quản lý bán phụ tùng")</h1>
+                </div>
+                <div class="topbar-actions">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <span class="status-dot"></span>
+                        <span>@User.Identity.Name</span>
+                        <form asp-controller="Auth" asp-action="Logout" method="post" class="logout-form">
+                            <button type="submit">Đăng xuất</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-controller="Auth" asp-action="Login">Đăng nhập</a>
+                    }
+                </div>
+            </header>
+
+            <main class="content">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

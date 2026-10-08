@@ -1,0 +1,58 @@
+@model IReadOnlyList<CrmLead>
+@{
+    ViewData["Title"] = "Lead & cuộc gọi";
+    ViewData["PageTitle"] = "Quản lý lead và cuộc gọi";
+}
+
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Lead từ marketing và kho số</h3>
+        <div class="filter-group">
+            @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Marketing"))
+            {
+                <a asp-action="CreateLead">+ Nhập lead</a>
+            }
+            <a asp-action="Leads">Tất cả</a>
+            <a asp-action="Leads" asp-route-status="HighIntent">Nhu cầu cao</a>
+            <a asp-action="Leads" asp-route-status="FollowUp">Hẹn gọi lại</a>
+            <a asp-action="Leads" asp-route-status="NoAnswer">Không nghe máy</a>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Ngày số về</th>
+                    <th>Khách</th>
+                    <th>Nguồn</th>
+                    <th>Sản phẩm</th>
+                    <th>Sale</th>
+                    <th>Action tiếp theo</th>
+                    <th>Trạng thái</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var lead in Model)
+            {
+                <tr>
+                    <td>@lead.LeadDate</td>
+                    <td><strong>@lead.CustomerNameRaw</strong><br /><small>@lead.PhoneNormalized</small></td>
+                    <td>@lead.PageName<br /><small>@lead.ContentName</small></td>
+                    <td>@(lead.Product?.ProductName ?? lead.ProductInterestRaw)</td>
+                    <td>@lead.AssignedUser?.DisplayName</td>
+                    <td>@lead.NextActionAt?.ToString("dd/MM HH:mm")<br /><small>@lead.NextActionNote</small></td>
+                    <td><span class="pill">@lead.LeadStatus.Vi()</span></td>
+                    <td class="row-actions">
+                        <a asp-action="EditLead" asp-route-id="@lead.Id">Sửa</a>
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Sale"))
+                        {
+                            <a asp-action="CreateOrder" asp-route-leadId="@lead.Id">Tạo đơn</a>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,66 @@
+@model IReadOnlyList<AppUser>
+@{
+    ViewData["Title"] = "Tài khoản";
+    ViewData["PageTitle"] = "Tài khoản và phân quyền";
+    var defaultPasswords = new Dictionary<UserRole, string>
+    {
+        [UserRole.Admin] = "Admin@123",
+        [UserRole.Manager] = "Manager@123",
+        [UserRole.Marketing] = "Marketing@123",
+        [UserRole.Sale] = "Sale@123",
+        [UserRole.Warehouse] = "Kho@123",
+        [UserRole.Shipping] = "Shipping@123",
+        [UserRole.Support] = "Support@123",
+        [UserRole.Finance] = "Finance@123",
+        [UserRole.QaReadonly] = "Readonly@123"
+    };
+}
+
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Tài khoản nhân viên</h3>
+        <span class="hint">Admin/Manager quản lý danh sách này. Mật khẩu dưới đây là mặc định để vận hành thử.</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Tài khoản</th>
+                    <th>Nhân viên</th>
+                    <th>Vai trò</th>
+                    <th>Đội</th>
+                    <th>Mật khẩu mặc định</th>
+                    <th>Quyền chính</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var user in Model)
+            {
+                <tr>
+                    <td><strong>@user.LoginName</strong></td>
+                    <td>@user.DisplayName</td>
+                    <td><span class="pill">@user.Role.Vi()</span></td>
+                    <td>@user.TeamName</td>
+                    <td>@(defaultPasswords.TryGetValue(user.Role, out var pass) ? pass : "Đổi trong DB")</td>
+                    <td>@RoleText(user.Role)</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@functions {
+    private static string RoleText(UserRole role) => role switch
+    {
+        UserRole.Admin => "Toàn quyền hệ thống, import, phân quyền",
+        UserRole.Manager => "Xem đội, chia lead, duyệt sửa dữ liệu",
+        UserRole.Marketing => "Nhập số, nhập khách, page, content, nguồn lead",
+        UserRole.Sale => "Cập nhật gọi, nỗi đau, chốt đơn, lý do mua",
+        UserRole.Warehouse => "Đóng hàng, kho, tồn",
+        UserRole.Shipping => "Mã vận đơn, trạng thái giao",
+        UserRole.Support => "Hỗ trợ nhận hàng, ticket",
+        UserRole.Finance => "Đối soát COD/doanh số",
+        _ => "Xem dữ liệu"
+    };
+}

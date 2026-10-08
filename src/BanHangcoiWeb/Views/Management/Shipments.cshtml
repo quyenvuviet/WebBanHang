@@ -1,0 +1,63 @@
+@model IReadOnlyList<Shipment>
+@{
+    ViewData["Title"] = "Vận đơn";
+    ViewData["PageTitle"] = "Quản lý vận đơn";
+}
+
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Theo dõi giao hàng</h3>
+        <span class="hint">Delay/hoàn sẽ mở ticket hỗ trợ nhận hàng</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Mã vận đơn</th>
+                    <th>Đơn vị VC</th>
+                    <th>Khách</th>
+                    <th>Ngày gửi</th>
+                    <th>Ngày thành công</th>
+                    <th>Ghi chú</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var shipment in Model)
+            {
+                <tr>
+                    <td><strong>@shipment.TrackingCode</strong></td>
+                    <td>@shipment.CarrierName</td>
+                    <td>@shipment.Order?.CustomerNameRaw<br /><small>@shipment.Order?.PhoneNormalized</small></td>
+                    <td>@shipment.ShippedAt?.ToString("dd/MM/yyyy")</td>
+                    <td>@shipment.DeliveredAt?.ToString("dd/MM/yyyy")</td>
+                    <td>@shipment.DeliveryIssueNote @shipment.ReturnReason</td>
+                    <td><span class="pill">@shipment.ShipmentStatus.Vi()</span></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Shipping"))
+{
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Cập nhật mã vận đơn</h3>
+            <span class="hint">Dùng OrderId từ bảng đơn hàng để tạo hoặc cập nhật vận đơn</span>
+        </div>
+        <form asp-action="UpdateShipment" method="post" class="form-grid">
+            <label>OrderId <input name="OrderId" class="form-control" /></label>
+            <label>Mã vận đơn <input name="TrackingCode" class="form-control" /></label>
+            <label>Đơn vị VC <input name="CarrierName" class="form-control" /></label>
+            <label>Trạng thái
+                <select name="ShipmentStatus" class="form-select" asp-items="VietnameseLabels.OrderStatusItems(OrderStatus.HandoverToCarrier)"></select>
+            </label>
+            <label class="wide-label">Ghi chú <textarea name="DeliveryIssueNote" class="form-control" rows="2"></textarea></label>
+            <div class="form-actions">
+                <button class="btn btn-teal" type="submit">Lưu vận đơn</button>
+            </div>
+        </form>
+    </div>
+}

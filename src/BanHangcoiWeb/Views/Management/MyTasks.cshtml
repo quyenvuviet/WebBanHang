@@ -1,0 +1,32 @@
+@model IReadOnlyList<WorkNotification>
+@{
+    ViewData["Title"] = "Việc của tôi";
+    ViewData["PageTitle"] = $"Việc cần xử lý - {ViewBag.Role}";
+}
+
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Thông báo và nhiệm vụ</h3>
+        <span class="hint">Các việc phát sinh từ Marketing, Sale, Kho, Vận chuyển, CSKH</span>
+    </div>
+    <div class="notification-list">
+        @foreach (var item in Model)
+        {
+            <div class="notice-item notice-action">
+                <div>
+                    <strong>@item.Title</strong>
+                    <span>@item.Message</span>
+                    <small>@item.CreatedAt.ToString("dd/MM/yyyy HH:mm") · @item.EntityType</small>
+                </div>
+                <form asp-action="MarkNotificationDone" method="post">
+                    <input type="hidden" name="id" value="@item.Id" />
+                    <button class="btn btn-sm btn-teal" type="submit">Xong</button>
+                </form>
+            </div>
+        }
+        @if (!Model.Any())
+        {
+            <p class="hint">Chưa có việc mới. Khi có lead nóng, đơn cần đóng, vận đơn lỗi hoặc ticket CSKH, hệ thống sẽ đưa vào đây.</p>
+        }
+    </div>
+</div>

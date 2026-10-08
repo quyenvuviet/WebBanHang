@@ -1,0 +1,20 @@
+@model LeadEntryViewModel
+@{
+    ViewData["Title"] = "Sửa lead";
+    ViewData["PageTitle"] = "Sale cập nhật cuộc gọi và chốt đơn";
+}
+
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Sale điền đầy đủ thông tin chăm sóc</h3>
+        <span class="hint">Ghi đủ 4 lần gọi, nỗi đau khách hàng, giá trị đơn chốt, mức bán và lý do mua hàng.</span>
+    </div>
+    <form method="post" class="entry-form">
+        @Html.AntiForgeryToken()
+        <partial name="_LeadEntryFields" model="Model" />
+        <div class="form-actions">
+            <button type="submit" class="btn btn-teal">Cập nhật lead</button>
+            <a asp-action="Leads" class="btn btn-light">Quay lại</a>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,41 @@
+@model IReadOnlyList<ImportBatch>
+@{
+    ViewData["Title"] = "Import Excel";
+    ViewData["PageTitle"] = "Quản lý import Excel";
+}
+
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Batch import</h3>
+        <span class="hint">Mỗi batch phải đối soát dòng gốc, dòng xử lý, dòng nhận và dòng loại</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Batch</th>
+                    <th>File nguồn</th>
+                    <th>Dòng gốc</th>
+                    <th>Dòng xử lý</th>
+                    <th>Đã nhận</th>
+                    <th>Bị loại</th>
+                    <th>Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var batch in Model)
+            {
+                <tr>
+                    <td><strong>@batch.BatchName</strong><br /><small>@batch.Notes</small></td>
+                    <td>@batch.SourceFile</td>
+                    <td>@batch.RawRows</td>
+                    <td>@batch.StagedRows</td>
+                    <td>@batch.AcceptedRows</td>
+                    <td>@batch.RejectedRows</td>
+                    <td><span class="pill">@VietnameseLabels.ViImportStatus(batch.Status)</span></td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

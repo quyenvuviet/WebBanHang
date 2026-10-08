@@ -1,0 +1,74 @@
+@model LeadEntryViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<section class="form-section">
+    <h4>Thông tin số về</h4>
+    <div class="form-grid">
+        <label>NGÀY SỐ VỀ<input asp-for="LeadDate" type="date" class="form-control" /></label>
+        <label>TÊN KHÁCH HÀNG<input asp-for="CustomerName" class="form-control" /></label>
+        <label>SĐT<input asp-for="Phone" class="form-control" /></label>
+        <label>SỐ NÓNG/SỐ CHECK
+            <select asp-for="LeadType" class="form-select">
+                <option>SỐ NÓNG</option>
+                <option>SỐ CHECK</option>
+            </select>
+        </label>
+        <label>NGHỀ NGHIỆP<input asp-for="Occupation" class="form-control" /></label>
+        <label>PAGE<input asp-for="PageName" class="form-control" /></label>
+        <label>CONTENT<input asp-for="ContentName" class="form-control" /></label>
+        <label>SP KHÁCH CHỐT<input asp-for="ProductInterestRaw" class="form-control" /></label>
+        <label>XE CÓ HƠI/KHÔNG HƠI<input asp-for="VehicleAirType" class="form-control" /></label>
+        <label>LOẠI XE<input asp-for="VehicleType" class="form-control" /></label>
+        <label>SALE<input asp-for="SaleName" class="form-control" /></label>
+        <label>TRẠNG THÁI
+            <select asp-for="LeadStatus" asp-items="VietnameseLabels.LeadStatusItems(Model.LeadStatus)" class="form-select"></select>
+        </label>
+    </div>
+</section>
+
+<section class="form-section">
+    <h4>Lịch sử gọi</h4>
+    <div class="call-grid">
+        <div class="call-box">
+            <h5>GỌI LẦN 1</h5>
+            <input asp-for="Call1Result" class="form-control" placeholder="Kết quả gọi lần 1" />
+            <input asp-for="Call1Date" type="date" class="form-control" />
+            <textarea asp-for="Call1Note" class="form-control" rows="3" placeholder="Ghi chú gọi lần 1 // Nỗi đau khách hàng"></textarea>
+            <input asp-for="Call1Minutes" type="number" class="form-control" placeholder="Số phút gọi" />
+        </div>
+        <div class="call-box">
+            <h5>GỌI LẦN 2</h5>
+            <input asp-for="Call2Result" class="form-control" placeholder="Kết quả gọi lần 2" />
+            <input asp-for="Call2Date" type="date" class="form-control" />
+            <textarea asp-for="Call2Note" class="form-control" rows="3" placeholder="Ghi chú gọi lần 2"></textarea>
+            <input asp-for="Call2Minutes" type="number" class="form-control" placeholder="Số phút gọi" />
+        </div>
+        <div class="call-box">
+            <h5>GỌI LẦN 3</h5>
+            <input asp-for="Call3Result" class="form-control" placeholder="Kết quả gọi lần 3" />
+            <input asp-for="Call3Date" type="date" class="form-control" />
+            <textarea asp-for="Call3Note" class="form-control" rows="3" placeholder="Ghi chú gọi lần 3"></textarea>
+            <input asp-for="Call3Minutes" type="number" class="form-control" placeholder="Số phút gọi" />
+        </div>
+        <div class="call-box">
+            <h5>GỌI LẦN 4</h5>
+            <input asp-for="Call4Result" class="form-control" placeholder="Kết quả gọi lần 4" />
+            <input asp-for="Call4Date" type="date" class="form-control" />
+            <textarea asp-for="Call4Note" class="form-control" rows="3" placeholder="Ghi chú gọi lần 4"></textarea>
+            <input asp-for="Call4Minutes" type="number" class="form-control" placeholder="Số phút gọi" />
+        </div>
+    </div>
+</section>
+
+<section class="form-section">
+    <h4>Chốt đơn và lý do mua hàng</h4>
+    <div class="form-grid">
+        <label>THỜI GIAN TÁC NGHIỆP<input asp-for="WorkAt" type="datetime-local" class="form-control" /></label>
+        <label>ĐẾM THỜI GIAN THẢ NỔI<input asp-for="FloatingDays" type="number" class="form-control" /></label>
+        <label>GIÁ TRỊ ĐƠN CHỐT<input asp-for="DealValueVnd" type="number" class="form-control" /></label>
+        <label>MỨC BÁN<input asp-for="SaleLevel" class="form-control" placeholder="Mức 1 / Mức 2 / Kịch giá" /></label>
+    </div>
+    <label class="wide-label">NOTE<textarea asp-for="SaleNote" class="form-control" rows="3"></textarea></label>
+    <label class="wide-label">LÍ DO MUA HÀNG<textarea asp-for="PurchaseReason" class="form-control" rows="3"></textarea></label>
+</section>

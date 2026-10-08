@@ -1,0 +1,44 @@
+@model IReadOnlyList<InventorySummaryRow>
+@{
+    ViewData["Title"] = "Sản phẩm & kho";
+    ViewData["PageTitle"] = "Quản lý sản phẩm và tồn kho";
+}
+
+<div class="panel">
+    <div class="panel-heading">
+        <h3>Tồn kho theo sản phẩm</h3>
+        <span class="hint">Tính từ inventory movements trong SQL Server</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>SKU</th>
+                    <th>Sản phẩm</th>
+                    <th>Tồn hiện tại</th>
+                    <th>Cảnh báo</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Sku</td>
+                    <td><strong>@item.ProductName</strong></td>
+                    <td>@item.CurrentQty</td>
+                    <td>
+                        @if (item.CurrentQty <= 5)
+                        {
+                            <span class="pill danger">Tồn thấp</span>
+                        }
+                        else
+                        {
+                            <span class="pill">Ổn</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
