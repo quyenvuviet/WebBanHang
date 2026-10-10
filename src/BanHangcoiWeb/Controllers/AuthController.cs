@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BanHangcoiWeb.Controllers;
-
+//check
 public class AuthController(AppDbContext db) : Controller
 {
     [HttpGet]
