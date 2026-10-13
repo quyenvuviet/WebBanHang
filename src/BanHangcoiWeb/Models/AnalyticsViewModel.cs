@@ -8,6 +8,8 @@ public class AnalyticsViewModel
     public List<ChartPoint> QuarterlyOrders { get; set; } = [];
     public List<ChartPoint> StatusPie { get; set; } = [];
     public long MaxBarValue { get; set; }
+    public long MaxOrderCountValue { get; set; }
+    public long MaxRevenueValue { get; set; }
 }
 
 public class ChartPoint

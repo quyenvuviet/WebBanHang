@@ -15,4 +15,11 @@
     </PackageReference>
   </ItemGroup>
 
+  <Target Name="EnsureLocalDatabase" BeforeTargets="Build"
+          Condition="'$(DesignTimeBuild)' != 'true' and $([MSBuild]::IsOSPlatform('Windows')) and Exists('$(MSBuildProjectDirectory)\..\..\database\BanHangcoiCrm.bak')">
+    <Message Importance="high" Text="Checking SQL Server 2025 LocalDB and BanHangcoiCrm database..." />
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\..\..\database\restore_localdb.ps1&quot; -IfMissing"
+          WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
+
 </Project>

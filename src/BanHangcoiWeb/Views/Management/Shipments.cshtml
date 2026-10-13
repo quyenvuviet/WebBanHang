@@ -20,6 +20,7 @@
                     <th>Ngày thành công</th>
                     <th>Ghi chú</th>
                     <th>Trạng thái</th>
+                    <th>Tác vụ</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,6 +34,19 @@
                     <td>@shipment.DeliveredAt?.ToString("dd/MM/yyyy")</td>
                     <td>@shipment.DeliveryIssueNote @shipment.ReturnReason</td>
                     <td><span class="pill">@shipment.ShipmentStatus.Vi()</span></td>
+                    <td>
+                        @if ((User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Shipping")) && shipment.Order is not null)
+                        {
+                            <form asp-action="UpdateShipment" method="post" class="shipment-inline-form">
+                                <input type="hidden" name="OrderId" value="@shipment.Order.Id" />
+                                <input name="TrackingCode" class="form-control" value="@shipment.TrackingCode" placeholder="Mã vận đơn" />
+                                <input name="CarrierName" class="form-control" value="@shipment.CarrierName" placeholder="Đơn vị VC" />
+                                <select name="ShipmentStatus" class="form-select" asp-items="VietnameseLabels.OrderStatusItems(shipment.ShipmentStatus)"></select>
+                                <input name="DeliveryIssueNote" class="form-control" value="@($"{shipment.DeliveryIssueNote} {shipment.ReturnReason}".Trim())" placeholder="Ghi chú" />
+                                <button class="btn btn-sm btn-teal" type="submit">Lưu</button>
+                            </form>
+                        }
+                    </td>
                 </tr>
             }
             </tbody>

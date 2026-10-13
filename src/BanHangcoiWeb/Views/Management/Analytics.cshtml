@@ -13,7 +13,7 @@
         <div class="bar-chart">
             @foreach (var point in Model.DailyOrders.TakeLast(31))
             {
-                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxBarValue));
+                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxOrderCountValue));
                 <div class="bar-column" title="@point.Label: @point.Value">
                     <div class="bar-value">@point.Value</div>
                     <div class="bar" style="height:@height%; background:@point.Color"></div>
@@ -31,7 +31,7 @@
         <div class="bar-chart">
             @foreach (var point in Model.WeeklyOrders)
             {
-                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxBarValue));
+                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxOrderCountValue));
                 <div class="bar-column" title="@point.Label: @point.Value">
                     <div class="bar-value">@point.Value</div>
                     <div class="bar" style="height:@height%; background:@point.Color"></div>
@@ -51,7 +51,7 @@
         <div class="bar-chart">
             @foreach (var point in Model.MonthlyOrders)
             {
-                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxBarValue));
+                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxRevenueValue));
                 <div class="bar-column" title="@point.Label: @point.Value.ToString("N0")">
                     <div class="bar-value">@point.Value.ToString("N0")</div>
                     <div class="bar" style="height:@height%; background:@point.Color"></div>
@@ -69,7 +69,7 @@
         <div class="bar-chart">
             @foreach (var point in Model.QuarterlyOrders)
             {
-                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxBarValue));
+                var height = Math.Max(4, (int)Math.Round(point.Value * 100.0 / Model.MaxRevenueValue));
                 <div class="bar-column" title="@point.Label: @point.Value.ToString("N0")">
                     <div class="bar-value">@point.Value.ToString("N0")</div>
                     <div class="bar" style="height:@height%; background:@point.Color"></div>

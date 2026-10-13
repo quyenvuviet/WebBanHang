@@ -205,6 +205,21 @@ a:hover {
   margin: 20px 0;
 }
 
+.dashboard-metrics {
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
+}
+
+.dashboard-hero {
+  align-items: flex-end;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 .metric-card,
 .panel,
 .stock-tile {
@@ -406,6 +421,48 @@ a:hover {
   font-style: normal;
 }
 
+.horizontal-bars {
+  display: grid;
+  gap: 12px;
+}
+
+.hbar-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) minmax(160px, 1fr) minmax(70px, auto);
+  gap: 12px;
+  align-items: center;
+}
+
+.hbar-row span,
+.hbar-row strong {
+  overflow-wrap: anywhere;
+}
+
+.hbar-row span {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.hbar-row div {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #eef5f3;
+}
+
+.hbar-row i {
+  display: block;
+  height: 100%;
+  min-width: 6px;
+  border-radius: inherit;
+}
+
+.hbar-row strong {
+  color: var(--ink);
+  font-size: 0.9rem;
+  text-align: right;
+}
+
 .stock-tile {
   padding: 14px;
 }
@@ -495,6 +552,28 @@ a:hover {
 .inline-form {
   display: inline-flex;
   margin: 0;
+}
+
+.shipment-inline-form,
+.shipment-mini-form {
+  display: grid;
+  gap: 6px;
+  min-width: 260px;
+}
+
+.shipment-inline-form {
+  grid-template-columns: minmax(110px, 1fr) minmax(90px, 0.7fr) minmax(130px, 1fr) minmax(120px, 1fr) auto;
+  align-items: end;
+}
+
+.shipment-mini-form {
+  margin-top: 8px;
+  grid-template-columns: minmax(110px, 1fr) minmax(78px, 0.7fr);
+}
+
+.shipment-mini-form .form-select,
+.shipment-mini-form button {
+  grid-column: 1 / -1;
 }
 
 .row-actions {
@@ -650,8 +729,13 @@ a:hover {
   .workflow-grid,
   .insight-grid,
   .form-grid,
-  .call-grid {
+  .call-grid,
+  .dashboard-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .shipment-inline-form {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -676,7 +760,16 @@ a:hover {
   .insight-grid,
   .pie-layout,
   .form-grid,
-  .call-grid {
+  .call-grid,
+  .dashboard-metrics {
     grid-template-columns: 1fr;
+  }
+
+  .hbar-row {
+    grid-template-columns: 1fr;
+  }
+
+  .hbar-row strong {
+    text-align: left;
   }
 }

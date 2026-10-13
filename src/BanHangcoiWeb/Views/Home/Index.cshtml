@@ -2,37 +2,186 @@
 @{
     ViewData["Title"] = "Tổng quan";
     ViewData["PageTitle"] = "Tổng quan vận hành";
+    var leadChartMax = Math.Max(1, Model.LeadStatusChart.Select(x => x.Value).DefaultIfEmpty(1).Max());
+    var revenueChartMax = Math.Max(1, Model.RevenueBySaleChart.Select(x => x.Value).DefaultIfEmpty(1).Max());
+    var orderChartMax = Math.Max(1, Model.OrderStatusChart.Select(x => x.Value).DefaultIfEmpty(1).Max());
 }
 
-<section class="hero-panel">
+<section class="hero-panel dashboard-hero">
     <div>
-        <p class="eyebrow">Marketing -> gọi -> chốt -> đóng hàng -> vận chuyển -> hỗ trợ -> done</p>
-        <h2>Quản lý bán phụ tùng ô tô theo action live</h2>
-        <p>Theo dõi lead, đơn hàng, tồn kho, vận đơn và hỗ trợ nhận hàng trên một giao diện xanh ngọc, dữ liệu lưu SQL Server.</p>
+        <p class="eyebrow">Dữ liệu SQL Server từ PTOT và Đi đơn tháng 8</p>
+        <h2>Tổng quan bán hàng, sale, vận đơn và upsale</h2>
+        <p>Theo dõi đủ phễu lead, cuộc gọi, đơn đã chốt, vận đơn, tồn kho và khách đã mua để chăm lại.</p>
     </div>
-    <a class="btn btn-light" asp-controller="Management" asp-action="Leads">Xem lead hôm nay</a>
+    <div class="hero-actions">
+        <a class="btn btn-light" asp-controller="Management" asp-action="Leads" asp-route-status="ClosedWon">Khách đã chốt</a>
+        <a class="btn btn-outline-light" asp-controller="Management" asp-action="Shipments">Vận đơn</a>
+    </div>
 </section>
 
-<section class="metric-grid">
+<section class="metric-grid dashboard-metrics">
     <div class="metric-card">
         <span>Lead</span>
-        <strong>@Model.LeadCount</strong>
-        <small>@Model.HighIntentLeadCount lead nhu cầu cao</small>
+        <strong>@Model.LeadCount.ToString("N0")</strong>
+        <small>@Model.HighIntentLeadCount.ToString("N0") nhu cầu cao, @Model.FollowUpLeadCount.ToString("N0") hẹn gọi lại</small>
     </div>
     <div class="metric-card">
-        <span>Đơn hàng</span>
-        <strong>@Model.OrderCount</strong>
-        <small>@Model.DeliveredOrderCount đơn đã nhận/done</small>
+        <span>Đã chốt</span>
+        <strong>@Model.ClosedWonLeadCount.ToString("N0")</strong>
+        <small>@Model.LeadToOrderRate.ToString("0.0")% lead lên đơn</small>
     </div>
     <div class="metric-card">
-        <span>Doanh số chốt</span>
+        <span>Doanh số active</span>
         <strong>@Model.ClosedRevenueVnd.ToString("N0")</strong>
-        <small>VND theo đơn đang active</small>
+        <small>TB đơn @Model.AverageOrderValueVnd.ToString("N0") VND</small>
+    </div>
+    <div class="metric-card">
+        <span>Vận đơn</span>
+        <strong>@Model.OrderCount.ToString("N0")</strong>
+        <small>@Model.DeliveredOrderCount.ToString("N0") thành công, @Model.ReturnOrderCount.ToString("N0") hoàn/hủy</small>
+    </div>
+    <div class="metric-card">
+        <span>Doanh số thành công</span>
+        <strong>@Model.DeliveredRevenueVnd.ToString("N0")</strong>
+        <small>@Model.DeliverySuccessRate.ToString("0.0")% đơn thành công</small>
+    </div>
+    <div class="metric-card">
+        <span>Upsale</span>
+        <strong>@Model.UpsaleCandidateCount.ToString("N0")</strong>
+        <small>Khách đã nhận hàng có thể chăm lại</small>
+    </div>
+    <div class="metric-card">
+        <span>Không nghe máy</span>
+        <strong>@Model.NoAnswerLeadCount.ToString("N0")</strong>
+        <small>Cần chia lại lịch gọi</small>
     </div>
     <div class="metric-card">
         <span>Ticket mở</span>
-        <strong>@Model.OpenTicketCount</strong>
-        <small>Cần hỗ trợ nhận hàng</small>
+        <strong>@Model.OpenTicketCount.ToString("N0")</strong>
+        <small>CSKH cần xử lý</small>
+    </div>
+</section>
+
+<section class="chart-grid">
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Phễu trạng thái lead</h3>
+            <a asp-controller="Management" asp-action="Leads">Chi tiết</a>
+        </div>
+        <div class="horizontal-bars">
+            @foreach (var point in Model.LeadStatusChart)
+            {
+                var width = Math.Max(4, (int)Math.Round(point.Value * 100.0 / leadChartMax));
+                <div class="hbar-row">
+                    <span>@point.Label</span>
+                    <div><i style="width:@width%; background:@point.Color"></i></div>
+                    <strong>@point.Value.ToString("N0")</strong>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Doanh số theo sale</h3>
+            <a asp-controller="Management" asp-action="Analytics">Biểu đồ</a>
+        </div>
+        <div class="horizontal-bars">
+            @foreach (var point in Model.RevenueBySaleChart)
+            {
+                var width = Math.Max(4, (int)Math.Round(point.Value * 100.0 / revenueChartMax));
+                <div class="hbar-row">
+                    <span>@point.Label</span>
+                    <div><i style="width:@width%; background:@point.Color"></i></div>
+                    <strong>@point.Value.ToString("N0")</strong>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="two-column">
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Hiệu suất sale và lý do mua</h3>
+            <span class="hint">Từ lịch sử gọi và cột lí do mua hàng</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table data-table">
+                <thead>
+                    <tr>
+                        <th>Sale</th>
+                        <th>Lead</th>
+                        <th>Cuộc gọi</th>
+                        <th>Chốt</th>
+                        <th>Có lý do</th>
+                        <th>Doanh số</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var row in Model.SalePerformance)
+                {
+                    <tr>
+                        <td><strong>@row.SaleName</strong></td>
+                        <td>@row.Leads.ToString("N0")</td>
+                        <td>@row.Calls.ToString("N0")</td>
+                        <td>@row.ClosedWon.ToString("N0")</td>
+                        <td>@row.LeadsWithPurchaseReason.ToString("N0")</td>
+                        <td>@row.RevenueVnd.ToString("N0")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-heading">
+            <h3>Trạng thái vận đơn</h3>
+            <a asp-controller="Management" asp-action="Shipments">Cập nhật</a>
+        </div>
+        <div class="horizontal-bars">
+            @foreach (var point in Model.OrderStatusChart)
+            {
+                var width = Math.Max(4, (int)Math.Round(point.Value * 100.0 / orderChartMax));
+                <div class="hbar-row">
+                    <span>@point.Label</span>
+                    <div><i style="width:@width%; background:@point.Color"></i></div>
+                    <strong>@point.Value.ToString("N0")</strong>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-heading">
+        <h3>Khách đã chốt để upsale</h3>
+        <a asp-controller="Management" asp-action="Leads" asp-route-status="ClosedWon">Xem tất cả</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Khách</th>
+                    <th>Sản phẩm</th>
+                    <th>Sale</th>
+                    <th>Giá trị</th>
+                    <th>Lý do mua / note</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var customer in Model.ClosedCustomers)
+            {
+                <tr>
+                    <td><strong>@customer.CustomerName</strong><br /><small>@customer.Phone</small></td>
+                    <td>@customer.ProductName</td>
+                    <td>@customer.SaleName</td>
+                    <td>@customer.RevenueVnd.ToString("N0")</td>
+                    <td>@customer.PurchaseReason<br /><small>@customer.LastNote</small></td>
+                </tr>
+            }
+            </tbody>
+        </table>
     </div>
 </section>
 
@@ -71,50 +220,18 @@
 
     <div class="panel">
         <div class="panel-heading">
-            <h3>Đơn hàng gần đây</h3>
-            <a asp-controller="Management" asp-action="Orders">Tất cả</a>
+            <h3>Tồn kho cần chú ý</h3>
+            <a asp-controller="Management" asp-action="Products">Quản lý kho</a>
         </div>
-        <div class="table-responsive">
-            <table class="table data-table">
-                <thead>
-                    <tr>
-                        <th>Ngày</th>
-                        <th>Khách</th>
-                        <th>COD</th>
-                        <th>Sale</th>
-                        <th>Trạng thái</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach (var order in Model.RecentOrders)
-                {
-                    <tr>
-                        <td>@order.OrderDate</td>
-                        <td>@order.CustomerNameRaw<br /><small>@order.PhoneNormalized</small></td>
-                        <td>@((order.CodAmountVnd ?? 0).ToString("N0"))</td>
-                        <td>@order.SaleUser?.DisplayName</td>
-                        <td><span class="pill">@order.OrderStatus.Vi()</span></td>
-                    </tr>
-                }
-                </tbody>
-            </table>
+        <div class="inventory-row">
+            @foreach (var item in Model.Inventory)
+            {
+                <div class="stock-tile">
+                    <span>@item.Sku</span>
+                    <strong>@item.CurrentQty</strong>
+                    <small>@item.ProductName</small>
+                </div>
+            }
         </div>
-    </div>
-</section>
-
-<section class="panel">
-    <div class="panel-heading">
-        <h3>Tồn kho cần chú ý</h3>
-        <a asp-controller="Management" asp-action="Products">Quản lý kho</a>
-    </div>
-    <div class="inventory-row">
-        @foreach (var item in Model.Inventory)
-        {
-            <div class="stock-tile">
-                <span>@item.Sku</span>
-                <strong>@item.CurrentQty</strong>
-                <small>@item.ProductName</small>
-            </div>
-        }
     </div>
 </section>

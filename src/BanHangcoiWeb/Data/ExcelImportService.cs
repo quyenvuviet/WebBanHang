@@ -7,30 +7,52 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BanHangcoiWeb.Data;
 
-public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> logger)
+public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> logger, IWebHostEnvironment environment, IConfiguration configuration)
 {
-    private static readonly string Root = @"D:\AI_AGENCY_AGENTS\BanHangcoi";
+    private readonly string Root = Path.GetFullPath(configuration["ExcelImport:Directory"]
+        ?? Path.Combine(environment.ContentRootPath, "..", "..", "data", "excel"));
     private readonly Dictionary<string, Customer> _customers = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Product> _products = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, AppUser> _users = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, MarketingCampaign> _campaigns = new(StringComparer.OrdinalIgnoreCase);
     private readonly HashSet<string> _trackingCodes = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, CrmLead> _latestLeadByPhone = new(StringComparer.OrdinalIgnoreCase);
 
     public async Task ImportIfNeededAsync()
     {
-        var hasActualImport = await db.ImportBatches.AnyAsync(x =>
-            x.BatchName == "PTOT dữ liệu - lead/call" || x.BatchName == "Đi đơn tháng 8 - đơn/vận/kho");
+        var requiredBatches = new[]
+        {
+            "PTOT dữ liệu - lead/call v2",
+            "Đi đơn tháng 8 - lead/call v2",
+            "Đi đơn tháng 8 - đơn/vận/kho v2"
+        };
+        var importedBatches = await db.ImportBatches
+            .Where(x => requiredBatches.Contains(x.BatchName) && x.Status == "accepted")
+            .Select(x => x.BatchName)
+            .Distinct()
+            .CountAsync();
+        var hasActualImport = importedBatches == requiredBatches.Length;
 
         if (hasActualImport)
         {
             return;
         }
 
+        foreach (var file in new[] { "PTOTdữ liệu.xlsx", "Đi đơn tháng 8.xlsx" })
+        {
+            var path = Path.Combine(Root, file);
+            if (!File.Exists(path))
+            {
+                throw new FileNotFoundException("Excel source file was not found. Configure ExcelImport:Directory or place the workbooks in data/excel.", path);
+            }
+        }
+
         logger.LogInformation("Starting Excel import for BanHangcoi workbooks.");
         await ClearDemoDataAsync();
         await WarmCachesAsync();
 
-        await ImportPtotLeadsAsync(Path.Combine(Root, "PTOTdữ liệu.xlsx"));
+        await ImportLeadWorkbookAsync(Path.Combine(Root, "PTOTdữ liệu.xlsx"), "PTOT dữ liệu - lead/call v2");
+        await ImportLeadWorkbookAsync(Path.Combine(Root, "Đi đơn tháng 8.xlsx"), "Đi đơn tháng 8 - lead/call v2");
         await ImportAugustOrdersAsync(Path.Combine(Root, "Đi đơn tháng 8.xlsx"));
 
         logger.LogInformation("Excel import finished.");
@@ -59,11 +81,11 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
         }
     }
 
-    private async Task ImportPtotLeadsAsync(string path)
+    private async Task ImportLeadWorkbookAsync(string path, string batchName)
     {
         var batch = new ImportBatch
         {
-            BatchName = "PTOT dữ liệu - lead/call",
+            BatchName = batchName,
             SourceFile = path,
             Status = "importing"
         };
@@ -95,7 +117,12 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
                 var sale = await GetOrCreateUserAsync(CellText(sheet, row, 11), UserRole.Sale);
                 var campaign = await GetOrCreateCampaignAsync(CellText(sheet, row, 6), CellText(sheet, row, 7), productRaw);
                 var product = await GetOrCreateProductAsync(productRaw);
-                var status = MapLeadStatus(CellText(sheet, row, 12), CellText(sheet, row, 14), CellText(sheet, row, 34));
+                var dealValue = ParseMoney(CellText(sheet, row, 30));
+                var closedDate = ParseDate(CellText(sheet, row, 31), sheet.Cell(row, 31).Value);
+                var saleNote = CellText(sheet, row, 32);
+                var saleLevel = CellText(sheet, row, 33);
+                var purchaseReason = CellText(sheet, row, 34);
+                var status = MapLeadStatus(CellText(sheet, row, 12), CellText(sheet, row, 14), purchaseReason, dealValue, closedDate);
 
                 var lead = new CrmLead
                 {
@@ -115,13 +142,23 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
                     VehicleAirType = CellText(sheet, row, 9),
                     VehicleType = CellText(sheet, row, 10),
                     SaleNameRaw = CellText(sheet, row, 11),
+                    WorkAt = ParseDateTimeOffset(CellText(sheet, row, 28), sheet.Cell(row, 28).Value),
+                    FloatingDays = ParseIntOrNull(CellText(sheet, row, 29)),
+                    DealValueVnd = dealValue > 0 ? dealValue : null,
+                    SaleNote = saleNote,
+                    SaleLevel = saleLevel,
+                    PurchaseReason = purchaseReason,
                     NextActionAt = GuessNextAction(status),
-                    NextActionNote = CellText(sheet, row, 34),
+                    NextActionNote = FirstNonEmpty(saleNote, purchaseReason, CellText(sheet, row, 26), CellText(sheet, row, 22), CellText(sheet, row, 18), CellText(sheet, row, 14)),
                     SourceFile = Path.GetFileName(path),
                     SourceSheet = sheet.Name,
                     SourceRow = row
                 };
                 db.CrmLeads.Add(lead);
+                if (!string.IsNullOrWhiteSpace(phone))
+                {
+                    _latestLeadByPhone[phone] = lead;
+                }
 
                 AddCallAttempts(sheet, row, lead, Path.GetFileName(path), sheet.Name);
                 acceptedRows++;
@@ -146,7 +183,7 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
     {
         var batch = new ImportBatch
         {
-            BatchName = "Đi đơn tháng 8 - đơn/vận/kho",
+            BatchName = "Đi đơn tháng 8 - đơn/vận/kho v2",
             SourceFile = path,
             Status = "importing"
         };
@@ -188,8 +225,10 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
             var product = await GetOrCreateProductAsync(productRaw);
             var sale = await GetOrCreateUserAsync(CellText(sheet, row, 10), UserRole.Sale);
             var status = MapOrderStatus(CellText(sheet, row, 17), CellText(sheet, row, 14));
+            _latestLeadByPhone.TryGetValue(phone ?? "", out var matchedLead);
             var order = new SalesOrder
             {
+                Lead = matchedLead,
                 Customer = customer,
                 SaleUser = sale,
                 OrderStatus = status,
@@ -202,6 +241,10 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
                 ShippingFeeVnd = ParseMoney(CellText(sheet, row, 12)),
                 TotalAmountVnd = cod,
                 NoteRaw = CellText(sheet, row, 22),
+                ReceiverName = customerName,
+                ReceiverPhone = phone,
+                ShippingAddress = CellText(sheet, row, 5),
+                PackingNote = CellText(sheet, row, 19),
                 SourceFile = Path.GetFileName(path),
                 SourceSheet = sheet.Name,
                 SourceRow = row
@@ -227,7 +270,8 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
                     TrackingCode = trackingCode,
                     CarrierName = CellText(sheet, row, 16),
                     ShipmentStatus = status,
-                    DeliveredAt = ParseDate(CellText(sheet, row, 18), sheet.Cell(row, 18).Value)?.ToDateTime(TimeOnly.MinValue),
+                    ShippedAt = ToDateTimeOffset(ParseDate(CellText(sheet, row, 1), sheet.Cell(row, 1).Value)),
+                    DeliveredAt = ToDateTimeOffset(ParseDate(CellText(sheet, row, 18), sheet.Cell(row, 18).Value)),
                     ReturnReason = CellText(sheet, row, 20),
                     DeliveryIssueNote = CellText(sheet, row, 19)
                 });
@@ -468,12 +512,11 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
 
     private static bool IsLeadSheet(string name)
     {
-        var n = name.Trim().ToLowerInvariant();
-        return n.StartsWith("nhân viên")
-            || n.StartsWith("nhan viên")
-            || n.StartsWith("nhân viên")
-            || n.Contains("kho số")
-            || n.Contains("databackup");
+        var n = NormalizeKey(name);
+        return n.StartsWith("nhan vien")
+            || n.Contains("kho so")
+            || n.Contains("databackup")
+            || n == "du lieu";
     }
 
     private static string CellText(IXLWorksheet sheet, int row, int col)
@@ -554,16 +597,59 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
         return int.TryParse(digits, out var value) ? value : fallback;
     }
 
+    private static int? ParseIntOrNull(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        var normalized = raw.Replace(",", ".").Trim();
+        if (decimal.TryParse(normalized, NumberStyles.Any, CultureInfo.InvariantCulture, out var decimalValue))
+        {
+            return (int)Math.Round(decimalValue);
+        }
+
+        var digits = Regex.Replace(raw, "[^0-9-]", "");
+        return int.TryParse(digits, out var value) ? value : null;
+    }
+
     private static int? ParseDurationSeconds(string? raw)
     {
         var minutes = ParseInt(raw, 0);
         return minutes > 0 ? minutes * 60 : null;
     }
 
-    private static LeadStatus MapLeadStatus(string? result, string? note, string? note2)
+    private static DateTimeOffset? ParseDateTimeOffset(string text, XLCellValue value)
+    {
+        if (value.IsDateTime)
+        {
+            return new DateTimeOffset(value.GetDateTime());
+        }
+
+        if (DateTimeOffset.TryParse(text, new CultureInfo("vi-VN"), DateTimeStyles.None, out var parsed)
+            || DateTimeOffset.TryParse(text, CultureInfo.InvariantCulture, DateTimeStyles.None, out parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
+
+    private static DateTimeOffset? ToDateTimeOffset(DateOnly? date)
+    {
+        return date?.ToDateTime(TimeOnly.MinValue);
+    }
+
+    private static string? FirstNonEmpty(params string?[] values)
+    {
+        return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
+    }
+
+    private static LeadStatus MapLeadStatus(string? result, string? note, string? note2, long dealValue = 0, DateOnly? closedDate = null)
     {
         var text = NormalizeKey($"{result} {note} {note2}");
-        if (text.Contains("chot")) return LeadStatus.ClosedWon;
+        if (dealValue > 0 || closedDate is not null || text.Contains("chot")) return LeadStatus.ClosedWon;
         if (text.Contains("knm") || text.Contains("thue bao") || text.Contains("khong nghe") || text.Contains("tat may")) return LeadStatus.NoAnswer;
         if (text.Contains("hen") || text.Contains("nhan") || text.Contains("can doi") || text.Contains("xem")) return LeadStatus.FollowUp;
         if (text.Contains("nhu cau cao")) return LeadStatus.HighIntent;
@@ -617,6 +703,7 @@ public class ExcelImportService(AppDbContext db, ILogger<ExcelImportService> log
             }
         }
 
-        return Regex.Replace(builder.ToString().Normalize(NormalizationForm.FormC), "\\s+", " ");
+        return Regex.Replace(builder.ToString().Normalize(NormalizationForm.FormC), "\\s+", " ")
+            .Replace('đ', 'd');
     }
 }

@@ -16,6 +16,7 @@
             <a asp-action="Leads" asp-route-status="HighIntent">Nhu cầu cao</a>
             <a asp-action="Leads" asp-route-status="FollowUp">Hẹn gọi lại</a>
             <a asp-action="Leads" asp-route-status="NoAnswer">Không nghe máy</a>
+            <a asp-action="Leads" asp-route-status="ClosedWon">Đã chốt</a>
         </div>
     </div>
     <div class="table-responsive">
@@ -27,6 +28,7 @@
                     <th>Nguồn</th>
                     <th>Sản phẩm</th>
                     <th>Sale</th>
+                    <th>Lần gọi / lý do</th>
                     <th>Action tiếp theo</th>
                     <th>Trạng thái</th>
                     <th></th>
@@ -41,6 +43,13 @@
                     <td>@lead.PageName<br /><small>@lead.ContentName</small></td>
                     <td>@(lead.Product?.ProductName ?? lead.ProductInterestRaw)</td>
                     <td>@lead.AssignedUser?.DisplayName</td>
+                    <td>
+                        @{
+                            var lastCall = lead.CallAttempts.OrderByDescending(x => x.AttemptNo).FirstOrDefault();
+                        }
+                        <strong>@lastCall?.ResultRaw</strong><br />
+                        <small>@(lead.PurchaseReason ?? lastCall?.PainNote ?? lead.SaleNote)</small>
+                    </td>
                     <td>@lead.NextActionAt?.ToString("dd/MM HH:mm")<br /><small>@lead.NextActionNote</small></td>
                     <td><span class="pill">@lead.LeadStatus.Vi()</span></td>
                     <td class="row-actions">

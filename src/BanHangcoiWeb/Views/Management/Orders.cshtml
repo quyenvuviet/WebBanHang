@@ -51,6 +51,17 @@
                                 <button class="btn btn-sm btn-teal" type="submit">Đóng hàng</button>
                             </form>
                         }
+                        @if (User.IsInRole("Admin") || User.IsInRole("Manager") || User.IsInRole("Shipping"))
+                        {
+                            <form asp-action="UpdateShipment" method="post" class="shipment-mini-form">
+                                <input type="hidden" name="OrderId" value="@order.Id" />
+                                <input name="TrackingCode" class="form-control" placeholder="Mã vận đơn" />
+                                <input name="CarrierName" class="form-control" placeholder="ĐVVC" />
+                                <select name="ShipmentStatus" class="form-select" asp-items="VietnameseLabels.OrderStatusItems(OrderStatus.HandoverToCarrier)"></select>
+                                <input type="hidden" name="DeliveryIssueNote" value="@order.PackingNote" />
+                                <button class="btn btn-sm btn-teal" type="submit">Lưu vận đơn</button>
+                            </form>
+                        }
                     </td>
                 </tr>
             }

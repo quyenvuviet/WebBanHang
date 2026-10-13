@@ -1,18 +1,17 @@
+:ON ERROR EXIT
 USE master;
 GO
-
+IF CONVERT(int, PARSENAME(CONVERT(varchar(30), SERVERPROPERTY('ProductVersion')), 4)) < 17
+    THROW 50001, 'This backup requires SQL Server 2025 (17.x) or later.', 1;
 IF DB_ID(N'BanHangcoiCrm') IS NOT NULL
-BEGIN
-    ALTER DATABASE [BanHangcoiCrm] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [BanHangcoiCrm];
-END
+    THROW 50002, 'BanHangcoiCrm already exists. Restore stopped to preserve existing data.', 1;
 GO
-
+RESTORE VERIFYONLY FROM DISK = N'$(BackupPath)';
+GO
 RESTORE DATABASE [BanHangcoiCrm]
-FROM DISK = N'D:\AI_AGENCY_AGENTS\WebBanHang\database\BanHangcoiCrm.bak'
+FROM DISK = N'$(BackupPath)'
 WITH
-    MOVE N'BanHangcoiCrm' TO N'C:\Users\PC\BanHangcoiCrm.mdf',
-    MOVE N'BanHangcoiCrm_log' TO N'C:\Users\PC\BanHangcoiCrm_log.ldf',
-    REPLACE,
+    MOVE N'BanHangcoiCrm' TO N'$(DataPath)',
+    MOVE N'BanHangcoiCrm_log' TO N'$(LogPath)',
     RECOVERY;
 GO

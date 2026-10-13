@@ -444,7 +444,8 @@ public class ManagementController(AppDbContext db, LocalAiAdvisor aiAdvisor) : C
             .Select((x, index) => Point(x.Key.Vi(), x.Count(), colors[index % colors.Length]))
             .ToList();
 
-        var allValues = daily.Concat(weekly).Concat(monthly).Concat(quarterly).Select(x => x.Value).DefaultIfEmpty(1);
+        var orderCountMax = daily.Concat(weekly).Select(x => x.Value).DefaultIfEmpty(1).Max();
+        var revenueMax = monthly.Concat(quarterly).Select(x => x.Value).DefaultIfEmpty(1).Max();
         return View(new AnalyticsViewModel
         {
             DailyOrders = daily,
@@ -452,7 +453,9 @@ public class ManagementController(AppDbContext db, LocalAiAdvisor aiAdvisor) : C
             MonthlyOrders = monthly,
             QuarterlyOrders = quarterly,
             StatusPie = statusPie,
-            MaxBarValue = Math.Max(1, allValues.Max())
+            MaxBarValue = Math.Max(1, Math.Max(orderCountMax, revenueMax)),
+            MaxOrderCountValue = Math.Max(1, orderCountMax),
+            MaxRevenueValue = Math.Max(1, revenueMax)
         });
     }
 
@@ -462,6 +465,7 @@ public class ManagementController(AppDbContext db, LocalAiAdvisor aiAdvisor) : C
             .Include(x => x.AssignedUser)
             .Include(x => x.Product)
             .Include(x => x.Campaign)
+            .Include(x => x.CallAttempts)
             .AsQueryable();
 
         if (Enum.TryParse<LeadStatus>(status, true, out var parsedStatus))

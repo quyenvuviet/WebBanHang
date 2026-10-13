@@ -16,16 +16,14 @@ Repo này chứa đầy đủ phần web ASP.NET Core, tài liệu triển khai,
 Yêu cầu:
 
 - .NET SDK 10 hoặc mới hơn.
-- SQL Server LocalDB hoặc SQL Server Express.
+- SQL Server 2025 LocalDB (17.x). Backup đi kèm không thể restore trên SQL Server 2012/2016/2019/2022.
 - `sqlcmd`.
 
 Các bước nhanh:
 
 ```powershell
-cd D:\AI_AGENCY_AGENTS\WebBanHang
-powershell -ExecutionPolicy Bypass -File .\database\restore_localdb.ps1
-dotnet restore .\src\BanHangcoiWeb\BanHangcoiWeb.csproj
-dotnet run --project .\src\BanHangcoiWeb\BanHangcoiWeb.csproj --urls http://localhost:5188
+cd C:\Users\quyenbin\Desktop\WebBanHang\WebBanHang
+powershell -ExecutionPolicy Bypass -File .\start_local.ps1
 ```
 
 Mở web:
@@ -37,10 +35,16 @@ http://localhost:5188
 Connection string mặc định trong `src/BanHangcoiWeb/appsettings.json`:
 
 ```text
-Server=(localdb)\MSSQLLocalDB;Database=BanHangcoiCrm;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True
+Server=(localdb)\BanHangcoi2025;Database=BanHangcoiCrm;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True
 ```
 
-Nếu máy ở nhà dùng SQL Server Express thay vì LocalDB, đổi server thành:
+Script tạo instance riêng `BanHangcoi2025`, kiểm tra phiên bản và khôi phục backup vào `database/local`. Database đã tồn tại được giữ nguyên khi chạy lại. Không chạy script restore cũ có `DROP DATABASE` hoặc `REPLACE`.
+
+Trong SSMS, kết nối `(localdb)\BanHangcoi2025` bằng Windows Authentication sau khi chạy script. Script SQL dùng biến SQLCMD; nên chạy qua script PowerShell ở trên.
+
+Excel nguồn được đọc từ `data/excel`. Có thể đổi thư mục bằng cấu hình `ExcelImport:Directory`.
+
+Nếu dùng SQL Server Express **2025** thay vì LocalDB, restore vào instance đó và đổi connection string thành:
 
 ```text
 Server=.\SQLEXPRESS;Database=BanHangcoiCrm;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True
